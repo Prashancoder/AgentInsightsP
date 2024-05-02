@@ -13,7 +13,34 @@ const Quiz = () => {
 
   useEffect(() => {
     setQuestions(questionsData);
+
+    const storedData = localStorage.getItem('quizData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setCurrentQuestionIndex(parsedData.currentQuestionIndex);
+      setAnswers(parsedData.answers);
+      setViolationCount(parsedData.violationCount);
+      setMarks(parsedData.marks);
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
+
+  useEffect(() => {
+    const quizData = { currentQuestionIndex, answers, violationCount, marks };
+    localStorage.setItem('quizData', JSON.stringify(quizData));
+  }, [currentQuestionIndex, answers, violationCount, marks]);
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      setViolationCount((prevCount) => prevCount + 1);
+      alert('You switched to another tab. This counts as a violation.');
+    }
+  };
 
   const handleNextQuestion = () => {
     setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
@@ -31,6 +58,7 @@ const Quiz = () => {
   };
 
   const handleResetQuiz = () => {
+    localStorage.removeItem('quizData'); 
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setViolationCount(0);
